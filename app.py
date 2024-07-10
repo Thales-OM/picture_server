@@ -43,7 +43,7 @@ def get_random_image_path():
 def get_random_image_source(sources: tuple, last_served: str = None):
     # Убираем уже использованную картинку, если есть
     if last_served and isinstance(last_served, str):
-        sources = (src for src in sources if src != last_served)
+        sources = tuple(src for src in sources if src != last_served)
     # Генерируем случайный индекс для выбора изображения
     src_index = choice(range(len(sources)))
     # Возвращаем имя выбранного изображения
