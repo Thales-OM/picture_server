@@ -3,17 +3,14 @@ from PIL import Image, ImageOps
 import os
 from random import choice
 from waitress import serve
+import yaml
 
 
 ############### CONFIG ###################
+
 RESOURCES_IMAGES_DIR_PATH = 'resources/images'
-IMG_SRC_LIST = [
-    'https://ae01.alicdn.com/kf/Sc38b35fb096947a4b1b17a2aaa5302ccM/Two-Black-Men-Kissing-Meme-T-Shirt-100-Cotton-Meme-Gay-Black-Two-Men-Kissing-Short.jpg',
-    'https://m.media-amazon.com/images/I/71c73uukcHL._AC_SY350_QL65_.jpg',
-    'https://ih1.redbubble.net/image.1228442711.9112/flat,750x,075,f-pad,750x1000,f8f8f8.jpg',
-    'https://media-cldnry.s-nbcnews.com/image/upload/t_fit-760w,f_auto,q_auto:best/newscms/2019_40/3036721/191003-2x1-tyler-hightower-ahdeem-tinsley-ew-1031a.jpg',
-    'https://media.tenor.com/Cd9xHzDYBJIAAAAe/kiss-love.png'
-]
+WEB_SOURCES_FILE_PATH = 'web_sources.yml'
+
 ##########################################
 
 
@@ -25,10 +22,12 @@ def index():
 
 @app.route('/image/')
 def image():
-    
-    # image_path = get_random_image_path()
-    image_src = get_random_image_source()
+    global web_sources
+    global last_served
 
+    # image_path = get_random_image_path()
+    image_src = get_random_image_source(web_sources, last_served)
+    last_served = image_src
     return render_template('image.html', image_src=image_src)
 
 def get_random_image_path():
@@ -41,12 +40,23 @@ def get_random_image_path():
     image_path = os.path.join(RESOURCES_IMAGES_DIR_PATH, image_name)
     return image_path
 
-def get_random_image_source(src_list=IMG_SRC_LIST):
+def get_random_image_source(sources: tuple, last_served: str = None):
+    # Убираем уже использованную картинку, если есть
+    if last_served and isinstance(last_served, str):
+        sources = (src for src in sources if src != last_served)
     # Генерируем случайный индекс для выбора изображения
-    src_index = choice(range(len(src_list)))
+    src_index = choice(range(len(sources)))
     # Возвращаем имя выбранного изображения
-    src = src_list[src_index]
+    src = sources[src_index]
     return src
 
+def get_image_web_sources_list(file_path: str, key: str):
+    with open(file_path, 'r') as web_sources_stream:
+        web_sources = yaml.safe_load(web_sources_stream)
+        web_sources_list = web_sources[key]
+    return web_sources_list
+
 if __name__ == '__main__':
+    web_sources = get_image_web_sources_list(WEB_SOURCES_FILE_PATH, 'ryan-gosling')
+    last_served = None
     serve(app, listen='*:8000')
