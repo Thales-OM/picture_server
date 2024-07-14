@@ -40,7 +40,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Copy pyproject.toml and poetry.lock to the working directory
 COPY pyproject.toml poetry.lock ./
 
-RUN apt-get update && apt-get install -y tk
+RUN apt-get update
 
 # Use Poetry to install dependencies
 RUN poetry install --no-interaction --no-root
@@ -64,8 +64,6 @@ RUN adduser \
 EXPOSE 8000
 
 # Run the application.
-# CMD ["python","app.py"]
-# CMD ["/venv/bin/activate", "&&", "python", "app.py"]
 CMD ["/venv/bin/activate"]
 
 # Switch to the non-privileged user to run the application.
